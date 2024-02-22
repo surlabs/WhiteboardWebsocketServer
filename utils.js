@@ -11,10 +11,8 @@ const debounce = require("lodash.debounce");
 const callbackHandler = require("./callback.js").callbackHandler;
 const isCallbackSet = require("./callback.js").isCallbackSet;
 
-const CALLBACK_DEBOUNCE_WAIT =
-    parseInt(process.env.CALLBACK_DEBOUNCE_WAIT) || 2000;
-const CALLBACK_DEBOUNCE_MAXWAIT =
-    parseInt(process.env.CALLBACK_DEBOUNCE_MAXWAIT) || 10000;
+const CALLBACK_DEBOUNCE_WAIT = 2000
+const CALLBACK_DEBOUNCE_MAXWAIT = 10000
 
 const wsReadyStateConnecting = 0;
 const wsReadyStateOpen = 1;
@@ -24,8 +22,6 @@ const wsReadyStateClosed = 3; // eslint-disable-line
 // disable gc when using snapshots!
 const gcEnabled = process.env.GC !== "false" && process.env.GC !== "0";
 const persistenceDir = "./whiteboard-data";
-console.log(persistenceDir);
-//Comprobamos si la ruta de persistencia existe
 const fs = require("fs");
 if (!fs.existsSync(persistenceDir)) {
     fs.mkdirSync(persistenceDir);
@@ -35,7 +31,7 @@ if (!fs.existsSync(persistenceDir)) {
  */
 let persistence = null;
 if (typeof persistenceDir === "string") {
-    console.info('Persisting documents to "' + persistenceDir + '"');
+    //console.info('Persisting documents to "' + persistenceDir + '"');
     // @ts-ignore
     const LeveldbPersistence = require("y-leveldb").LeveldbPersistence;
     const ldb = new LeveldbPersistence(persistenceDir);
@@ -160,11 +156,7 @@ class WSSharedDoc extends Y.Doc {
     }
 
     canAddMoreUsers(doc) {
-        console.log(
-            "Numero actual de usuarios: " +
-                parseInt(doc.getArray("users").length + 1)
-        );
-        return parseInt(doc.getArray("users").length + 1) <= 2; // Límite de 30 usuarios
+        return parseInt(doc.getArray("users").length + 1) <= 30;
     }
 }
 
@@ -233,7 +225,6 @@ const closeConn = (doc, conn) => {
     if (doc.conns.has(conn)) {
         const controlledIds = doc.conns.get(conn);
         controlledIds.forEach((clientId) => {
-            // Actualiza el estado de awareness para reflejar que el usuario se ha desconectado
             doc.awareness.setLocalStateField(clientId, null);
         });
         doc.conns.delete(conn);
@@ -289,11 +280,8 @@ exports.setupWSConnection = (
     const doc = getYDoc(docName, gc);
 
     if (!doc.canAddMoreUsers(doc)) {
-        // Si se alcanza el límite, enviar un mensaje (opcional) y cerrar la conexión
-        console.log("Sala llena. No se pueden añadir más usuarios.");
-
-        conn.close(4000, "Sala llena"); // 1000 es un código de cierre normal
-        return; // Terminar la ejecución para no añadir el usuario
+        conn.close(4000, "The room is full");
+        return; 
     }
 
     doc.conns.set(conn, new Set());
@@ -326,7 +314,6 @@ exports.setupWSConnection = (
     }, pingTimeout);
     conn.on("close", () => {
         const clientID = doc.conns.get(conn);
-        // Elimina el estado de awareness para este clientID
         doc.awareness.setLocalStateField(clientID, null);
         closeConn(doc, conn);
         clearInterval(pingInterval);
@@ -366,12 +353,6 @@ exports.cloneDoc = async (originalRoomId, newRoomId) => {
 
         Y.applyUpdate(newDoc, encodedState);
 
-        if (!originalDoc.share.has(`tl_${originalRoomId}`)) {
-            throw new Error(
-                `El tipo compartido tl_${originalRoomId} no existe en el documento original.`
-            );
-        }
-
         const originalType = newDoc.get(`tl_${originalRoomId}`);
         newDoc.share.set(`tl_${newRoomId}`, originalType);
 
@@ -383,15 +364,12 @@ exports.cloneDoc = async (originalRoomId, newRoomId) => {
         if (persistence && persistence.provider) {
             await persistence.provider.storeUpdate(newRoomId, updateStates);
             await persistence.bindState(newRoomId, newDoc);
-            console.log(
-                `Estado clonado guardado en la persistencia para la sala '${newRoomId}'.`
-            );
         } else {
             console.error(
-                "Sistema de persistencia no configurado correctamente."
+                "Persistence is not available."
             );
         }
     } catch (error) {
-        console.error("Error al clonar la sala:", error);
+        console.error("Error cloning room:", error);
     }
 };
