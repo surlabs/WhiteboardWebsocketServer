@@ -1,6 +1,6 @@
 # Whiteboard Websocket Server
 
-This project is a WebSocket server designed for real-time interactions, developed by SURLABS with funding from the University of Freiburg.
+This project is a WebSocket server designed for real-time interactions with the Whiteboard object plugin for ILIAS,developed by SURLABS with funding from the University of Freiburg.
 This code is freely distributed under the terms of the GNU General Public License version 3 (GPL-3.0),
 a copy of which is available at https://www.gnu.org/licenses/gpl-3.0.en.html. This license allows for the free use,
 modification, and distribution of this software, ensuring it remains open-source and accessible to the community.
