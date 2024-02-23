@@ -130,3 +130,6 @@ dist
 # cert files
 cert/fullchain.pem
 cert/privkey.pem
+
+#whiteboard 
+whiteboard-data/
