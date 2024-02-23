@@ -11,8 +11,8 @@ const debounce = require("lodash.debounce");
 const callbackHandler = require("./callback.js").callbackHandler;
 const isCallbackSet = require("./callback.js").isCallbackSet;
 
-const CALLBACK_DEBOUNCE_WAIT = 2000
-const CALLBACK_DEBOUNCE_MAXWAIT = 10000
+const CALLBACK_DEBOUNCE_WAIT = 2000;
+const CALLBACK_DEBOUNCE_MAXWAIT = 10000;
 
 const wsReadyStateConnecting = 0;
 const wsReadyStateOpen = 1;
@@ -45,7 +45,6 @@ if (typeof persistenceDir === "string") {
             ldb.storeUpdate(docName, newUpdates);
 
             Y.applyUpdate(ydoc, Y.encodeStateAsUpdate(persistedYdoc));
-            console.log("Paso por bindState con", docName);
             ydoc.on("update", (update) => {
                 ldb.storeUpdate(docName, update);
             });
@@ -281,7 +280,7 @@ exports.setupWSConnection = (
 
     if (!doc.canAddMoreUsers(doc)) {
         conn.close(4000, "The room is full");
-        return; 
+        return;
     }
 
     doc.conns.set(conn, new Set());
@@ -298,7 +297,6 @@ exports.setupWSConnection = (
         if (!pongReceived) {
             if (doc.conns.has(conn)) {
                 closeConn(doc, conn);
-                console.log("EXPULSO A UN USUARIO POR TIMEOUT");
             }
             clearInterval(pingInterval);
         } else if (doc.conns.has(conn)) {
@@ -307,7 +305,6 @@ exports.setupWSConnection = (
                 conn.ping();
             } catch (e) {
                 closeConn(doc, conn);
-                console.log("EXPULSO A UN USUARIO POR TIMEOUT");
                 clearInterval(pingInterval);
             }
         }
@@ -365,9 +362,7 @@ exports.cloneDoc = async (originalRoomId, newRoomId) => {
             await persistence.provider.storeUpdate(newRoomId, updateStates);
             await persistence.bindState(newRoomId, newDoc);
         } else {
-            console.error(
-                "Persistence is not available."
-            );
+            console.error("Persistence is not available.");
         }
     } catch (error) {
         console.error("Error cloning room:", error);

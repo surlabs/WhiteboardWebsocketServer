@@ -26,7 +26,6 @@ server.listen(5123, () => {
 });
 
 app.post("/clone-room", async (req, res) => {
-    console.log("Recibo", req.body);
     const fromId = req.body.from + "";
     const toId = req.body.to + "";
 
@@ -34,11 +33,11 @@ app.post("/clone-room", async (req, res) => {
         // Espera a que cloneDoc complete su ejecución
         await cloneDoc(fromId, toId);
         // Envía la respuesta solo después de que cloneDoc haya terminado
-        res.status(200).send("Sala clonada exitosamente.");
+        res.status(200).send("Successfully cloned room.");
     } catch (error) {
         // Manejo de errores en caso de que cloneDoc falle
-        console.error("Error al clonar sala:", error);
-        res.status(500).send("Error al clonar la sala.");
+        console.error("Error when cloning room:", error);
+        res.status(500).send("Error when cloning the room.");
     }
 });
 
