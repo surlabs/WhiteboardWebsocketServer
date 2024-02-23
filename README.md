@@ -28,10 +28,23 @@ To set up the project on your local machine, follow these steps:
 
 To start the server, follow these steps:
 
-1. Within the project directory, run `npm start`.
+1. Within the project directory of the websocket server project, run `npm start`.
 2. The server will start, and you should see a message indicating that the server is running on a specific port (default is 5123).
 
 The first time you run the server, a directory called "whiteboard-data" will be created. In this folder the persistence data will be stored.
+
+You can edit the port used by modifying the index.js file and editing line 10 where the port is defined.
+
+**We recommend deploying the server through an individual Linux screen to keep the process active in the background.**
+For example:
+
+> screen -S whiteboard
+
+And then, perform steps 1 and 2 to start the server.
+
+You can then use to return to the session where the server was started:
+
+> screen -r whiteboard
 
 ## Accessing the Server
 

@@ -4,9 +4,10 @@ const WebSocket = require("ws");
 const fs = require("fs");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const path = require("path");
 const setupWSConnection = require("./utils.js").setupWSConnection;
 const cloneDoc = require("./utils.js").cloneDoc;
+
+const PORT = 5123;
 
 const app = express();
 app.use(cors());
@@ -21,7 +22,7 @@ const server = http.createServer(
 );
 const wss = new WebSocket.Server({ server });
 
-server.listen(5123, () => {
+server.listen(PORT, () => {
     console.log(`Server running on port ${server.address().port}`);
 });
 
