@@ -14,7 +14,7 @@
         "express": "^4.19.2",
         "http": "^0.0.1-security",
         "lodash.debounce": "^4.0.8",
-        "ws": "^8.13.0",
+        "ws": "^8.17.1",
         "y-leveldb": "^0.1.2",
         "y-protocols": "^1.0.6",
         "yjs": "^13.6.12"
