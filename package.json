@@ -9,20 +9,18 @@
     "author": "Daniel Cazalla",
     "license": "ISC",
     "dependencies": {
-        "app": "^0.1.0",
-        "cors": "^2.8.5",
-        "express": "^4.22.1",
-        "http": "^0.0.1-security",
+        "cors": "^2.8.6",
+        "express": "^5.2.1",
         "lodash.debounce": "^4.0.8",
-        "ws": "^8.17.1",
-        "y-leveldb": "^0.1.2",
-        "y-protocols": "^1.0.6",
-        "yjs": "^13.6.12"
+        "ws": "^8.21.0",
+        "y-leveldb": "^0.2.0",
+        "y-protocols": "^1.0.7",
+        "yjs": "^13.6.31"
     },
     "devDependencies": {
-        "@types/lodash": "^4.14.198"
+        "@types/lodash": "^4.17.24"
     },
-	"resolutions": {
-		"minimist": "1.2.6"
-	}
+    "resolutions": {
+        "minimist": "1.2.6"
+    }
 }
