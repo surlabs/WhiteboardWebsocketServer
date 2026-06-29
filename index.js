@@ -5,7 +5,7 @@ const fs = require("fs");
 const WebSocket = require("ws");
 const cors = require("cors");
 
-const { port, serverProtocol, tlsCertPath, tlsKeyPath } = require("./src/config.js");
+const { authSecret, port, serverProtocol, tlsCertPath, tlsKeyPath } = require("./src/config.js");
 const { persistenceDir } = require("./src/persistence.js");
 const { setupWSConnection } = require("./src/websocket.js");
 const { cloneDoc } = require("./src/clone-room.js");
@@ -37,6 +37,11 @@ server.listen(port, () => {
         `Whiteboard websocket server running with ${serverProtocol.toUpperCase()} on port ${server.address().port}`
     );
     console.log(`Persisting Yjs documents in ${persistenceDir}`);
+    console.log(
+        authSecret
+            ? `Whiteboard auth tokens enabled with configured secret length ${authSecret.length}`
+            : "Whiteboard auth tokens disabled; running in legacy unsigned mode"
+    );
 });
 
 app.post("/clone-room", async (req, res) => {
