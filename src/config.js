@@ -6,7 +6,7 @@ const parseInteger = (value, fallback) => {
 };
 
 const serverProtocol = (process.env.SERVER_PROTOCOL || "https").toLowerCase();
-const authSecret = process.env.WHITEBOARD_AUTH_SECRET || "";
+const authSecret = (process.env.WHITEBOARD_AUTH_SECRET || "").trim();
 
 if (serverProtocol !== "http" && serverProtocol !== "https") {
     throw new Error("SERVER_PROTOCOL must be either 'http' or 'https'.");
