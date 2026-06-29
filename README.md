@@ -48,6 +48,69 @@ The following environment variables are supported:
 - `PING_INTERVAL_MS`: websocket heartbeat interval. Default: `30000`.
 - `GC`: set to `false` or `0` to disable Yjs garbage collection. Default: enabled.
 - `YPERSISTENCE`: persistence directory. Default: `./whiteboard-data`.
+- `WHITEBOARD_AUTH_SECRET`: shared HMAC secret used to validate temporary access tokens. Leave empty to keep the legacy unsigned mode. Set at least 32 random characters to enable token validation.
+
+## Access Tokens
+
+Token validation is disabled by default. It is enabled only when `WHITEBOARD_AUTH_SECRET` is set.
+
+When token validation is enabled, the websocket server rejects connections that do not include a valid signed token. The ILIAS plugin must generate this token only after it has checked that the current user may access the whiteboard.
+
+When the same secret is configured in the ILIAS plugin, the client must render the token in the host page:
+
+```html
+<div id="whiteboardtoken" class="hidden">TOKEN_VALUE</div>
+```
+
+The websocket client sends that token as a `token` query parameter. The token format is:
+
+```text
+base64url(json_payload).base64url(hmac_sha256(base64url(json_payload), WHITEBOARD_AUTH_SECRET))
+```
+
+Required payload fields:
+
+```json
+{
+  "roomId": "5196251",
+  "username": "Display Name",
+  "permissions": {
+    "write": true,
+    "admin": false,
+    "importExport": false
+  },
+  "exp": 1767225600
+}
+```
+
+`exp` is a Unix timestamp in seconds. Keep token lifetimes short, for example 5 to 15 minutes. When `WHITEBOARD_AUTH_SECRET` is set, the server rejects missing tokens, invalid signatures, expired tokens, and tokens created for a different room.
+
+PHP example for the ILIAS plugin:
+
+```php
+$payload = [
+    'roomId' => (string) $roomId,
+    'username' => $userDisplayName,
+    'permissions' => [
+        'write' => $canWrite,
+        'admin' => $isAdmin,
+        'importExport' => $canImportExport,
+    ],
+    'exp' => time() + 600,
+];
+
+$base64Url = static function (string $value): string {
+    return rtrim(strtr(base64_encode($value), '+/', '-_'), '=');
+};
+
+$encodedPayload = $base64Url(json_encode($payload, JSON_UNESCAPED_SLASHES));
+$signature = $base64Url(hash_hmac('sha256', $encodedPayload, $whiteboardAuthSecret, true));
+$token = $encodedPayload . '.' . $signature;
+```
+
+The old `role`, `username`, and `hasImportExportPermission` DOM values are not authorization sources. The server trusts only the signed token. Read-only tokens may connect and receive updates, but Yjs document updates sent by those clients are rejected.
+
+If `WHITEBOARD_AUTH_SECRET` is empty, the server keeps the previous behavior and accepts unsigned websocket connections. In that mode, the ILIAS plugin should not render `whiteboardtoken` and no additional authorization is enforced by the websocket server.
 
 ## Prerequisites
 

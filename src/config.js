@@ -6,13 +6,19 @@ const parseInteger = (value, fallback) => {
 };
 
 const serverProtocol = (process.env.SERVER_PROTOCOL || "https").toLowerCase();
+const authSecret = process.env.WHITEBOARD_AUTH_SECRET || "";
 
 if (serverProtocol !== "http" && serverProtocol !== "https") {
     throw new Error("SERVER_PROTOCOL must be either 'http' or 'https'.");
 }
 
+if (authSecret && authSecret.length < 32) {
+    throw new Error("WHITEBOARD_AUTH_SECRET must be set to at least 32 characters.");
+}
+
 module.exports = {
     serverProtocol,
+    authSecret,
     port: parseInteger(process.env.PORT, 5123),
     maxClientsPerRoom: parseInteger(process.env.MAX_CLIENTS_PER_ROOM, 30),
     pingIntervalMs: parseInteger(process.env.PING_INTERVAL_MS, 30000),

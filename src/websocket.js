@@ -5,12 +5,14 @@ const decoding = require("lib0/dist/decoding.cjs");
 
 const { pingIntervalMs } = require("./config.js");
 const { getYDoc, destroyDocIfEmpty } = require("./documents.js");
+const { verifyWhiteboardToken } = require("./auth.js");
 
 const WS_READY_STATE_CONNECTING = 0;
 const WS_READY_STATE_OPEN = 1;
 
 const MESSAGE_SYNC = 0;
 const MESSAGE_AWARENESS = 1;
+const MESSAGE_YJS_SYNC_STEP_1 = 0;
 
 const send = (doc, conn, message) => {
     if (
@@ -79,6 +81,15 @@ const handleMessage = (conn, doc, message) => {
         const messageType = decoding.readVarUint(decoder);
 
         if (messageType === MESSAGE_SYNC) {
+            const inspectDecoder = decoding.createDecoder(message);
+            decoding.readVarUint(inspectDecoder);
+            const syncMessageType = decoding.readVarUint(inspectDecoder);
+
+            if (!conn.whiteboardAuth?.permissions?.write && syncMessageType !== MESSAGE_YJS_SYNC_STEP_1) {
+                conn.close(4003, "Write access denied");
+                return;
+            }
+
             encoding.writeVarUint(encoder, MESSAGE_SYNC);
             syncProtocol.readSyncMessage(decoder, encoder, doc, conn);
 
@@ -146,12 +157,37 @@ const sendInitialState = (doc, conn) => {
 };
 
 const getDocNameFromRequest = (req) => {
-    const rawDocName = req.url.slice(1).split("?")[0];
-    return decodeURIComponent(rawDocName);
+    const url = new URL(req.url, "http://localhost");
+    return decodeURIComponent(url.pathname.slice(1));
+};
+
+const getTokenFromRequest = (req) => {
+    const url = new URL(req.url, "http://localhost");
+    return url.searchParams.get("token");
+};
+
+const authCloseCodes = {
+    missing_token: 4001,
+    invalid_format: 4002,
+    invalid_signature: 4002,
+    invalid_payload: 4002,
+    expired_token: 4004,
+    room_mismatch: 4005,
 };
 
 const setupWSConnection = async (conn, req, options = {}) => {
     const docName = options.docName || getDocNameFromRequest(req);
+    let auth;
+
+    try {
+        auth = verifyWhiteboardToken(getTokenFromRequest(req), docName);
+    } catch (error) {
+        conn.close(authCloseCodes[error.code] || 4002, error.message || "Unauthorized");
+        console.warn(`Rejected websocket connection for ${docName}: ${error.message}`);
+        return;
+    }
+
+    conn.whiteboardAuth = auth;
     const doc = getYDoc(docName, options.gc);
 
     await doc.whenSynced;

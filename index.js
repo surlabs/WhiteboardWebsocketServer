@@ -9,6 +9,7 @@ const { port, serverProtocol, tlsCertPath, tlsKeyPath } = require("./src/config.
 const { persistenceDir } = require("./src/persistence.js");
 const { setupWSConnection } = require("./src/websocket.js");
 const { cloneDoc } = require("./src/clone-room.js");
+const { verifyWhiteboardToken } = require("./src/auth.js");
 
 const app = express();
 app.use(cors());
@@ -44,6 +45,18 @@ app.post("/clone-room", async (req, res) => {
 
     if (!req.body.from || !req.body.to) {
         res.status(400).send("Both 'from' and 'to' room ids are required.");
+        return;
+    }
+
+    try {
+        const token = (req.headers.authorization || "").replace(/^Bearer\s+/i, "") || req.body.token;
+        const auth = verifyWhiteboardToken(token, fromId);
+        if (!auth.permissions?.admin && !auth.permissions?.importExport) {
+            res.status(403).send("The token is not allowed to clone this room.");
+            return;
+        }
+    } catch (error) {
+        res.status(401).send("A valid whiteboard auth token is required.");
         return;
     }
 
